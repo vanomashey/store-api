@@ -4,37 +4,21 @@
 // =============================================================================
 
 // call the packages we need
-var express    = require('express');        // call express
-var app        = express();                 // define our app using express
-var bodyParser = require('body-parser');
+var express     = require('express');        // call express
+var app         = express();                 // define our app using express
+var bodyParser  = require('body-parser');
+var dt          = require('./dt.js');
+var underscore  = require('underscore');
 
-var mongoose   = require('mongoose');
-mongoose.connect('mongodb://node:node@novus.modulusmongo.net:27017/Iganiq8o'); // connect to our database
+var customers ={} ;
+customers['ivan']={};
+customers['ivan'].total=100;
 
-
-
-var customers;
-customers['ivan'].total = 100;
-customers['yijia'].total = 100;
-customers['ivan'].total = 100;
-
-var orders;
-
-var products;
-products[1].name = "milk";
-products[1].price = "1"
-
-products[1].name = "milk2";
-products[1].price = "2"
-
-products[1].name = "milk";
-products[1].price = "3"
-// configure app to use bodyParser()
 // this will let us get the data from a POST
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-var port = process.env.PORT || 8080;        // set our port
+var port = process.env.PORT || 8081;        // set our port
 
 // ROUTES FOR OUR API
 // =============================================================================
@@ -42,75 +26,61 @@ var router = express.Router();              // get an instance of the express Ro
 
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 router.get('/', function(req, res) {
-  res.json({ message: 'welcome to ING IP&P (InstantPayment and Prediction)!!!' });   
+    console.log("---------------------------------------------");
+    console.log("New request is received.");
+    res.write('Welcome to ING IP&FT (InstantPayment and Future Teller)!!!\n');
+    res.write('/api/offer/ - returns offer for the customer. CustomerId - have to be specified\n');
+    res.write('/api/pay/ - processes the payment. CustomerId, total, products - have to specified\n');
+    res.end();   
+});
+
+router.post('/customer/pay', function(req, res) {
+    console.log("New request is received. Processing."); 
+    var customer_id = req.body.customer;
+    var cust_products = req.body.products;
+    console.log(req.body);
+    if (!customers[customer_id])
+    {
+        console.log("Error: no such customer"); 
+        res.json({ status: "404", message: "No such customer! "});        
+        return;
+    }
+    if (!cust_products){
+        console.log("Error: basket is empty. Nothing to process");
+        res.json({ status: "404", message: "Empty basket! Go back shopping!!! "});
+        return;                   
+    }
+    if (req.body.total>customers[customer_id].total) {
+        res.json({message: "Insufficient funds! Please refer to team ABC for overdraft protection or become IT specialist. They are the richest people in the world!", status: "Insufficient funds."});
+        console.log("Error: insufficient funds.");
+        return;  
+    } else {
+        res.json({status:200,message: "Payment processed successfully"});
+        console.log("Payment processed successfully");  
+    } 
 });
 
 
-router.get('/customer/:customer_id/order/new', function(req, res) {
-    customer_id = req.params.customer_id;
 
-    if (customers[customer_id])
+router.post('/customer/offer', function(req, res) {
+    console.log("New request is received. Processing.");
+
+    var customer_id = req.body.customer;
+    
+    if (customers[customer_id] )
     {   
-        var new_order = process.hrtime();
-        res.json({ order: new_order});
+        var offering = dt.get_offer();
+        res.json({'offering' : offering});
+        console.log("Getting data from external resources");
+        console.log("Getting historical data of the customer"); 
+        console.log("Offer is ready. Model suggest: " + offering);
     }
-    else 
+    else
     {
-        res.json({ error: "404", message: "No such customer! ");
-    } 
-});
-
-
-router.get('/customer/:customer_id/pay', function(req, res) {
-    customer_id = req.params.customer_id;
-
-    if (customers[customer_id] && orders[order_id])
-    {
-        if (customers[customer_id].total > orders[order_id])
-        {
-            var balance = customers[customer_id].total - orders[order_id];
-            concole.log("New Transaction is processed. Total is " + orders[order_id].total + "Status: Paid. Remaining balance is " + balance + ".");
-            req.json({message: "Order is successfully paid!"});
-        }
-        else
-        {
-            concole.log("Insufficient funds!!! Total is " + orders[order_id].total + ". Status: Paid. Balance is " + balance + ".");
-            req.json({message: "Insufficient funds! Please refer to team ABC for overdraft protection!", error: "Insufficient rights."});   
-        }
+        res.json({ error: "404", message: "No such customer! "});
+        console.log("No such customer!");
     }
-    else 
-    {
-        res.json({ error: "404", message: "No such customer! ");
-    } 
 });
-
-router.get('/customer/:customer_id/order/:order_id/cancel', function(req, res) {
-    customer_id = req.params.customer_id;
-    order_id = req.params.order_id;
-
-    if (customers[customer_id] && orders[order_id])
-    {
-      delete orders[order_id];      
-    }
-    else 
-    {
-        res.json({ error: "404", message: "No data available! ");
-    } 
-    res.json({ message: 'Your order is canceled!' });   
-});
-        
-
-
-
-
-
-
-router.get('/order/id/cancel', function(req, res) {
-      res.json({ message: 'Order ID is cleaned up!' });
-});
-
-
-
 
 // REGISTER OUR ROUTES -------------------------------
 // all of our routes will be prefixed with /api
@@ -119,4 +89,6 @@ app.use('/api', router);
 // START THE SERVER
 // =============================================================================
 app.listen(port);
-console.log('Magic happens on port ' + port);
+console.log('################################################################');
+console.log('ING intelligent instant payment gateway is started on port: ' + port);
+console.log('################################################################');

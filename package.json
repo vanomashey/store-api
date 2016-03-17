@@ -1,6 +1,13 @@
 {
   "name": "git",
   "version": "1.0.0",
+  "dependencies": {
+    "decision-tree": "^0.3.1",
+    "express": "^4.13.4",
+    "hmm": "^0.1.0",
+    "nodehmm": "0.0.3",
+    "underscore": "^1.8.3"
+  },
   "description": "store-api",
   "main": "server.js",
   "directories": {
@@ -14,10 +21,5 @@
     "api"
   ],
   "author": "Ivan Mashey",
-  "license": "ISC",
-    "dependencies": {
-    "express": "~4.0.0",
-    "mongoose": "~3.6.13",
-    "body-parser": "~1.0.1"
-  }
+  "license": "ISC"
 }
