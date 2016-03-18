@@ -11,8 +11,14 @@ var dt          = require('./dt.js');
 var underscore  = require('underscore');
 
 var customers ={} ;
-customers['ivan']={};
-customers['ivan'].total=100;
+customers['jack']={};
+customers['jack'].total=100;
+
+customers['susan']={};
+customers['susan'].total=100;
+
+customers['jim']={};
+customers['jim'].total=100;
 
 // this will let us get the data from a POST
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -69,7 +75,7 @@ router.post('/customer/offer', function(req, res) {
     
     if (customers[customer_id] )
     {   
-        var offering = dt.get_offer();
+        var offering = dt.get_offer(customer_id);
         res.json({'offering' : offering});
         console.log("Getting data from external resources");
         console.log("Getting historical data of the customer"); 
